@@ -21,9 +21,10 @@ function drawCanvas() {
     c.lineWidth = shapes[name].lineWidth*innerHeight/1000;
     c.strokeStyle = shapes[name].lineColor;
     c.fillStyle = shapes[name].fillColor;
+    //Math.csc(shapes[name].sides)
     var lastPos = [
-      innerHeight*(0.5+shapes[name].position[0]/2)-0*Math.sin(Math.PI*2/shapes[name].sides+Math.rad(shapes[name].rotation+90))*(innerHeight*shapes[name].lineLength)*shapes[name].scale[0],
-      innerHeight*(0.5-shapes[name].position[1]/2)+0*Math.cos(Math.PI*2/shapes[name].sides+Math.rad(shapes[name].rotation+90))*(innerHeight*shapes[name].lineLength)*shapes[name].scale[1]
+      innerHeight*(0.5+shapes[name].position[0]/2+Math.cos(Math.rad(180/shapes[name].sides))/2*Math.csc(Math.rad(180/shapes[name].sides))*shapes[name].lineLength*shapes[name].scale[0]),
+      innerHeight*(0.5-shapes[name].position[1]/2-Math.sin(Math.rad(180/shapes[name].sides))/2*Math.csc(Math.rad(180/shapes[name].sides))*shapes[name].lineLength*shapes[name].scale[1])
     ];
     c.moveTo(lastPos[0], lastPos[1]);
     for (var i = 0; i < shapes[name].sides; i++) {
@@ -70,8 +71,33 @@ setInterval( function () {
   canvas.height = innerHeight;
   drawCanvas();
 }, 50);
+pushShape('name', {
+  'position': [0, 0],
+  'rotation': 90,
+  'scale': [1, 1],
+  'sides': 7,
+  'lineLength': 0.1,
+  'lineWidth': 10,
+  'lineColor': '#88c22b',
+  'filled': 1,
+  'fillColor': '#bdff52'
+})
+pushShape('name2', {
+  'position': [0, 0],
+  'rotation': 90,
+  'scale': [1, 1],
+  'sides': 6,
+  'lineLength': 0.000001,
+  'lineWidth': 10,
+  'lineColor': '#88c22b',
+  'filled': 1,
+  'fillColor': '#bdff52'
+})
 
 //overriding!
 Math.rad = function(degrees) {
   return degrees * Math.PI / 180;
+};
+Math.csc = function(radian) {
+  return 1/Math.sin(radian);
 };
