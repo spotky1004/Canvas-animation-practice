@@ -29,15 +29,21 @@ function drawCanvas() {
     c.lineWidth = shapes[name].lineWidth*innerHeight/1000;
     c.strokeStyle = shapes[name].lineColor;
     c.fillStyle = shapes[name].fillColor;
-    //Math.csc(shapes[name].sides)
+    //Math.csc(shapes[name].sides);
+    var p = shapes[name].position;
+
+    var s = shapes[name].sides;
+    var d = shapes[name].rotation;
+    var d1 = (-d+180/s)%360;
+    var centerL = Math.csc(Math.rad(180/s))/2*shapes[name].lineLength;
     var lastPos = [
-      innerHeight*(0.5+shapes[name].position[0]/2+Math.cos(Math.rad(shapes[name].rotation))*Math.cos(Math.rad(180/shapes[name].sides+90))/2*Math.csc(Math.rad(180/shapes[name].sides))*shapes[name].lineLength*shapes[name].scale[0]),
-      innerHeight*(0.5-shapes[name].position[1]/2-Math.sin(Math.rad(shapes[name].rotation+90))*Math.sin(Math.rad(180/shapes[name].sides+90))/2*Math.csc(Math.rad(180/shapes[name].sides))*shapes[name].lineLength*shapes[name].scale[1])
+      innerHeight*(0.5+p[0]/2-Math.sin(Math.rad(d1))*centerL*shapes[name].scale[0]),
+      innerHeight*(0.5-p[1]/2-Math.cos(Math.rad(d1))*centerL*shapes[name].scale[1])
     ];
     c.moveTo(lastPos[0], lastPos[1]);
     for (var i = 0; i < shapes[name].sides; i++) {
-      lastPos[0] += Math.sin(Math.PI*2/shapes[name].sides*i+Math.rad(shapes[name].rotation+90))*(innerHeight*shapes[name].lineLength)*shapes[name].scale[0];
-      lastPos[1] -= Math.cos(Math.PI*2/shapes[name].sides*i+Math.rad(shapes[name].rotation+90))*(innerHeight*shapes[name].lineLength)*shapes[name].scale[1];
+      lastPos[0] += Math.sin(Math.PI*2/s*i+Math.rad(d+90))*(innerHeight*shapes[name].lineLength)*shapes[name].scale[0];
+      lastPos[1] -= Math.cos(Math.PI*2/s*i+Math.rad(d+90))*(innerHeight*shapes[name].lineLength)*shapes[name].scale[1];
       c.lineTo(lastPos[0], lastPos[1]);
     }
     c.scale(shapes[name].scale[0], shapes[name].scale[1]);
