@@ -19,7 +19,11 @@ function drawCanvas() {
   for (var name in shapes) {
     shapes[name].rotation = (shapes[name].rotation+shapes[name].rotationSpeed)%360;
     shapes[name].moveDeg += shapes[name].degSpeed;
-    shapes[name].moveSpeed = Math.min(shapes[name].moveSpeed+shapes[name].accSpeed, shapes[name].speedCap);
+    if (shapes[name].spanPer != 0) {
+      var per = [shapes[name].spanPer, 1];
+      shapes[name].position[0] = (shapes[name].position[0]*per[0]+shapes[name].spanMove[0]*per[1])/(per[0]+per[1]);
+      shapes[name].position[1] = (shapes[name].position[1]*per[0]+shapes[name].spanMove[1]*per[1])/(per[0]+per[1]);
+    }
     shapes[name].position[0] += shapes[name].moveSpeed*Math.sin(Math.rad(shapes[name].moveDeg))/100;
     shapes[name].position[1] -= shapes[name].moveSpeed*Math.cos(Math.rad(shapes[name].moveDeg))/100;
     shapes[name].scale[0] = Math.min(shapes[name].scale[0]+shapes[name].scaleSpeed[0]/100, shapes[name].scaleCap[0]);
@@ -31,19 +35,18 @@ function drawCanvas() {
     c.fillStyle = shapes[name].fillColor;
     //Math.csc(shapes[name].sides);
     var p = shapes[name].position;
-
     var s = shapes[name].sides;
     var d = shapes[name].rotation;
     var d1 = (-d+180/s)%360;
     var centerL = Math.csc(Math.rad(180/s))/2*shapes[name].lineLength;
     var lastPos = [
-      innerHeight*(0.5+p[0]/2-Math.sin(Math.rad(d1))*centerL*shapes[name].scale[0]),
-      innerHeight*(0.5-p[1]/2-Math.cos(Math.rad(d1))*centerL*shapes[name].scale[1])
+      innerHeight*(0.5+p[0]/2-Math.sin(Math.rad(d1))*centerL*shapes[name].scale[0])/univScale,
+      innerHeight*(0.5-p[1]/2-Math.cos(Math.rad(d1))*centerL*shapes[name].scale[1])/univScale
     ];
     c.moveTo(lastPos[0], lastPos[1]);
     for (var i = 0; i < shapes[name].sides; i++) {
-      lastPos[0] += Math.sin(Math.PI*2/s*i+Math.rad(d+90))*(innerHeight*shapes[name].lineLength)*shapes[name].scale[0];
-      lastPos[1] -= Math.cos(Math.PI*2/s*i+Math.rad(d+90))*(innerHeight*shapes[name].lineLength)*shapes[name].scale[1];
+      lastPos[0] += Math.sin(Math.PI*2/s*i+Math.rad(d+90))*(innerHeight*shapes[name].lineLength)*shapes[name].scale[0]/univScale;
+      lastPos[1] -= Math.cos(Math.PI*2/s*i+Math.rad(d+90))*(innerHeight*shapes[name].lineLength)*shapes[name].scale[1]/univScale;
       c.lineTo(lastPos[0], lastPos[1]);
     }
     c.scale(shapes[name].scale[0], shapes[name].scale[1]);
@@ -60,7 +63,7 @@ defShapeValues = {
   'lineLength': 0.1, 'lineWidth': 0.00001, 'lineColor': '#f00',
   'filled': 1, 'fillColor': '#f00',
   'moveDeg': 0, 'degSpeed': 0,
-  'moveSpeed': 0, 'accSpeed': 0, 'speedCap': 1e308,
+  'moveSpeed': 0, 'spanMove': [0, 0], 'spanPer': 0,
   'scaleSpeed': [0, 0], 'scaleCap': [1e308, 1e308]
 };
 function pushShape(name, attrObj={}) {
@@ -82,24 +85,19 @@ play();
 async function play() {
   playing ^= 1;
   await playMusic()
-  //setTimeout( function() {pushShape('p1s0', {'position': [-.8, 0.05], 'rotation': 0, 'sides': 5, 'lineWidth': 10, 'fillColor': '#f00', 'lineColor': '#7cbf3d'})}, 1000);
-  setTimeout( function() {pushShape('p1s1', {'position': [0, 0], 'rotation': 0, 'rotationSpeed': 2, 'sides': 7, 'lineWidth': 10, 'fillColor': '#8fd152', 'lineColor': '#7cbf3d'})}, 1);
-  setTimeout( function() {pushShape('p1s-', {'position': [0, 0], 'rotation': 0, 'sides': 7, 'lineWidth': 10, 'fillColor': '#8fd152', 'lineColor': '#7cbf3d'})}, 1);
-  setTimeout( function() {pushShape('name1', {
-  'sides': 6, 'position': [0, 0], 'scale': [1, 1],
-  'rotation': 0, 'rotationSpeed': 0,
-  'lineLength': 0.01, 'lineWidth': 0.00001, 'lineColor': '#f00',
-  'filled': 1, 'fillColor': '#f00',
-  'moveDeg': 0, 'degSpeed': 0,
-  'moveSpeed': 0, 'accSpeed': 0, 'speedCap': 1e308,
-  'scaleSpeed': [1, 1], 'scaleCap': [-1, -1]
-})}, 0);
-  //setTimeout( function() {pushShape('p1s2', {'position': [-.2, 0], 'sides': 4, 'lineWidth': 10, 'fillColor': '#8fd152', 'lineColor': '#7cbf3d'})}, 1400);
-  //setTimeout( function() {pushShape('p1s3', {'position': [0.3, 0], 'sides': 3, 'lineWidth': 10, 'fillColor': '#8fd152', 'lineColor': '#7cbf3d'})}, 1800);
+  //setTimeout( function() {pushShape('p1s1', {'position': [0, 0], 'rotation': 0, 'rotationSpeed': 2, 'sides': 7, 'lineWidth': 10, 'fillColor': '#8fd152', 'lineColor': '#7cbf3d', 'spanMove': [1, 1], 'spanPer': 20})}, 1);
 }
 async function playMusic() {
   var audio = await new Audio('MM1.mp3');
   //audio.play();
+}
+
+function hexagonBgSpan(name, l=0.2, dPx=0, dPy=0) {
+  for (var i = 0; i < 15; i++) {
+    for (var j = 0; j < 15; j++) {
+      pushShape(name + '-' + i + ', ' + j, {'position': [20, 1.5-l*j], 'rotation': dPx*i+dPy*j, 'sides': 6, 'lineWidth': 10, 'fillColor': '#8fd152', 'lineColor': '#7cbf3d', 'spanMove': [-1.5+l*i, 1.5-l*j], 'spanPer': j+i*4+1})
+    }
+  }
 }
 
 
